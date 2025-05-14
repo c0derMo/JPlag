@@ -2,6 +2,7 @@ package de.jplag.java;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +16,14 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 
+import com.sun.tools.javac.parser.Scanner;
+import com.sun.tools.javac.parser.ScannerFactory;
+import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Log;
+import de.jplag.java.commentExtraction.CommentExtractor;
+import de.jplag.java.commentExtraction.CustomScanner;
+import de.jplag.java.commentExtraction.CustomTokenizer;
 import org.slf4j.Logger;
 
 import de.jplag.ParsingException;
@@ -50,6 +59,36 @@ public class JavacAdapter {
             final Trees trees = Trees.instance(task);
             final SourcePositions positions = new FixedSourcePositions(trees.getSourcePositions());
             for (final CompilationUnitTree ast : executeCompilationTask(task, parser.logger)) {
+                /*
+                 * Weird hacky things I'm doing to get line comments
+                 * To use, add --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+                 * to run script
+                 */
+
+                Context context = new Context();
+                Log.instance(context);
+
+                ScannerFactory scannerFactory = ScannerFactory.instance(context);
+                Scanner s2 = new CustomScanner(scannerFactory, new CustomTokenizer(scannerFactory, CharBuffer.wrap(ast.getSourceFile().getCharContent(true))));
+
+                List<String> javaExtractorComments = new ArrayList<>();
+
+                while (s2.token().kind != Tokens.TokenKind.EOF) {
+                    Tokens.Token t = s2.token();
+                    List<Tokens.Comment> comments = t.comments;
+                    if (comments != null) {
+                        for (Tokens.Comment comment : comments) {
+                            javaExtractorComments.add("COMMENT: " + comment.getStyle() + " " + comment.getText());
+                        }
+                    }
+                    s2.nextToken();
+                }
+                System.out.println(javaExtractorComments);
+
+                // Attempt 2
+                CommentExtractor extractor = new CommentExtractor(ast.getSourceFile().getCharContent(true).toString());
+                System.out.println(extractor.extract());
+
                 File file = new File(ast.getSourceFile().toUri());
                 final LineMap map = ast.getLineMap();
                 var scanner = new TokenGeneratingTreeScanner(file, parser, map, positions, ast);

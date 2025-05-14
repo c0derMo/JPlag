@@ -11,5 +11,8 @@ public class IfWithBraces {
         } else {
             System.out.println(args[0]);
         }
+        /*
+            Some other multi line comment
+         */
     }
 }
