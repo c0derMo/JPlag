@@ -35,29 +35,10 @@ public class CommentPreprocessor {
         }
     }
 
-    public List<String> processToStrings() {
-        List<Token> tokens = this.processToToken();
-        HashMap<Integer, String> commentsPerLine = new HashMap<>();
-
-        for (Token token : tokens) {
-            if (token.getType() == SharedTokenType.FILE_END) {
-                continue;
-            }
-            int line = token.getLine();
-            String tokenContent = token.getType().getDescription();
-            if (commentsPerLine.containsKey(line)) {
-                commentsPerLine.put(line, commentsPerLine.get(line) + " " + tokenContent);
-            } else {
-                commentsPerLine.put(line, tokenContent);
-            }
-        }
-
-        return new ArrayList<>(commentsPerLine.values());
-    }
-
     private List<Token> fixTokenPositions(List<Token> tokens) {
         List<Token> fixedTokens = new ArrayList<>();
         File lastFile = null;
+        Comment lastComment = null;
         for (Token token : tokens) {
             if (token.getType() == SharedTokenType.FILE_END) {
                 fixedTokens.add(Token.fileEnd(lastFile));
@@ -75,6 +56,12 @@ public class CommentPreprocessor {
                 fixedTokens.add(Token.fileEnd(lastFile));
             }
             lastFile = originalComment.file();
+
+            if (lastComment != null && !lastComment.equals(originalComment)) {
+                fixedTokens.add(new Token(CommentTokenType.COMMENT_END, originalComment.file(), -1, -1, -1));
+            }
+            lastComment = originalComment;
+
             int line = originalComment.line() + token.getLine() - commentStartingLines.get(originalComment);
             int column = token.getColumn();
 

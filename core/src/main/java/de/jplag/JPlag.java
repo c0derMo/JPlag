@@ -91,7 +91,7 @@ public class JPlag {
         }
 
         // Compare comments
-        CommentComparer commentComparer = new CommentComparer(options);
+        CommentComparer commentComparer = new CommentComparer();
         result = commentComparer.compareCommentsAndMergeMatches(result);
 
         if (logger.isInfoEnabled()) {
