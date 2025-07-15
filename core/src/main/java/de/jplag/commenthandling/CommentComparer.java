@@ -21,10 +21,6 @@ public class CommentComparer {
                 threshold = currentSubmission.getBaseCodeComparison().similarity();
             }
 
-            if (threshold < 0.5) {
-                threshold = 0.5;
-            }
-
             List<CommentTuple> similarComments = this.findSimilarComments(currentSubmission, baseCodeSubmission, commentTokenMapper, threshold);
 
             List<Match> baseCodeMatches = new ArrayList<>();
@@ -69,7 +65,10 @@ public class CommentComparer {
             CommentTuple bestMatch = null;
             CommentTokenMapper.CommentWithTokenInfo matchingRightComment = null;
             for (CommentTokenMapper.CommentWithTokenInfo rightComment : secondIterator) {
-                double similarity = 0.0;
+                int distance = DamerauLevensthein.calculateDistance(leftComment.content(), rightComment.content());
+
+                double longerLength = Math.max(leftComment.content().length(), rightComment.content().length());
+                double similarity = 1.0 - distance / longerLength;
 
                 if (similarity >= threshold && similarity > highestSimilarity) {
                     highestSimilarity = similarity;
