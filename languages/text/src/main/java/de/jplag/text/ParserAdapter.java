@@ -21,7 +21,7 @@ public class ParserAdapter extends AbstractParser {
     private static final char LF = '\n';
     private static final char CR = '\r';
     private static final String ANNOTATORS_KEY = "annotators";
-    private static final String ANNOTATORS_VALUE = "tokenize";
+    private static final String ANNOTATORS_VALUE = "tokenize,pos,lemma";
     private final StanfordCoreNLP pipeline;
 
     private List<Token> tokens;
@@ -98,12 +98,12 @@ public class ParserAdapter extends AbstractParser {
 
     private boolean isWord(CoreLabel token) {
         // consider a token as a word if it contains any alphanumeric character
-        String text = token.originalText();
+        String text = token.lemma();
         return text.chars().anyMatch(it -> Character.isAlphabetic(it) || Character.isDigit(it));
     }
 
     private void addToken(CoreLabel label) {
-        String text = label.originalText();
+        String text = label.lemma();
         int column = label.beginPosition() - currentLineBreakIndex;
         int length = label.endPosition() - label.beginPosition();
         tokens.add(new Token(new TextTokenType(text), currentFile, currentLine, column, length));
