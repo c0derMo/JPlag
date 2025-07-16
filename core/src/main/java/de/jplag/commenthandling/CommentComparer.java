@@ -61,7 +61,10 @@ public class CommentComparer {
             CommentTuple bestMatch = null;
             CommentTokenMapper.CommentWithTokenInfo matchingRightComment = null;
             for (CommentTokenMapper.CommentWithTokenInfo rightComment : secondIterator) {
-                double similarity = 0.0;
+                BagOfWords leftBag = leftComment.bag().copy();
+                BagOfWords rightBag = rightComment.bag().copy();
+
+                double similarity = leftBag.cosineSimilarityTo(rightBag);
 
                 if (similarity >= threshold && similarity > highestSimilarity) {
                     highestSimilarity = similarity;
