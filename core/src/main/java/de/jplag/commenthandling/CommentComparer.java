@@ -56,6 +56,10 @@ public class CommentComparer {
             secondIterator = temp;
         }
 
+        if (threshold < 0.5) {
+            threshold = 0.5;
+        }
+
         for (CommentTokenMapper.CommentWithTokenInfo leftComment : firstIterator) {
             double highestSimilarity = 0;
             CommentTuple bestMatch = null;
