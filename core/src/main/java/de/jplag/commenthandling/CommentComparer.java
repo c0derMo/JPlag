@@ -21,10 +21,6 @@ public class CommentComparer {
                 threshold = currentSubmission.getBaseCodeComparison().similarity();
             }
 
-            if (threshold < 0.5) {
-                threshold = 0.5;
-            }
-
             List<CommentTuple> similarComments = this.findSimilarComments(currentSubmission, baseCodeSubmission, commentTokenMapper, threshold);
 
             List<Match> baseCodeMatches = new ArrayList<>();
@@ -58,6 +54,10 @@ public class CommentComparer {
             List<CommentTokenMapper.CommentWithTokenInfo> temp = firstIterator;
             firstIterator = secondIterator;
             secondIterator = temp;
+        }
+
+        if (threshold < 0.5) {
+            threshold = 0.5;
         }
 
         for (CommentTokenMapper.CommentWithTokenInfo leftComment : firstIterator) {
